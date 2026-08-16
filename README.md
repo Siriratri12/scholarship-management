@@ -1045,27 +1045,6 @@ Dashboard
 
 ---
 
-# 🚀 แนวทางการพัฒนาต่อยอด
-
-ระบบสามารถพัฒนาเพิ่มเติมในอนาคต เช่น
-
-- การ Upload เอกสารประกอบการสมัคร
-- ระบบตรวจสอบเอกสารออนไลน์
-- Email Notification
-- แจ้งเตือนผลการพิจารณา
-- Approval Workflow หลายระดับ
-- ระบบจัดการบัญชีเจ้าหน้าที่
-- Permission Management
-- Export รายงาน Excel / PDF
-- Dashboard เชิงสถิติ
-- เชื่อมต่อฐานข้อมูลนักศึกษาของมหาวิทยาลัย
-- Single Sign-On (SSO)
-- ระบบประกาศทุน
-- กำหนดวันเปิดและปิดรับสมัครทุน
-- Notification สำหรับนักศึกษา
-
----
-
 # ⚠️ หมายเหตุ
 
 ระบบนี้พัฒนาขึ้นในรูปแบบ **Proof of Concept (POC)** เพื่อแสดงแนวทางการพัฒนา Web Application สำหรับบริหารจัดการคำขอทุนการศึกษา
@@ -1081,9 +1060,3 @@ admin / admin123
 ใช้สำหรับการทดสอบ POC และไม่ควรใช้ Credential ดังกล่าวกับระบบ Production จริง
 
 ---
-
-# 👩‍💻 Developer
-
-Developed as a Proof of Concept for the **Scholarship Management System**
-
-Prince of Songkla University
