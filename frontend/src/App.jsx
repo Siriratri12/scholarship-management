@@ -1,6 +1,8 @@
 import { useState } from "react";
 import "./App.css";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 function App() {
   const [formData, setFormData] = useState({
     studentId: "",
@@ -18,7 +20,11 @@ function App() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", type: "" });
+
+  const [message, setMessage] = useState({
+    text: "",
+    type: "",
+  });
 
   const scholarshipTypes = [
     "ทุนขาดแคลนทุนทรัพย์",
@@ -28,44 +34,96 @@ function App() {
     "ทุนกิจกรรมนักศึกษา",
   ];
 
+  // =========================================================
+  // HANDLE CHANGE
+  // =========================================================
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    if (message.text) {
+      setMessage({
+        text: "",
+        type: "",
+      });
+    }
   };
+
+  // =========================================================
+  // HANDLE SUBMIT
+  // =========================================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setLoading(true);
-    setMessage({ text: "", type: "" });
+
+    setMessage({
+      text: "",
+      type: "",
+    });
 
     try {
-      const response = await fetch("http://localhost:5000/api/scholarships", {
+      const payload = {
+        studentId: formData.studentId.trim(),
+
+        studentName: formData.studentName.trim(),
+
+        faculty: formData.faculty.trim(),
+
+        major: formData.major.trim(),
+
+        year: Number(formData.year),
+
+        gpax: Number(formData.gpax),
+
+        email: formData.email.trim(),
+
+        scholarshipType: formData.scholarshipType,
+
+        requestedAmount: Number(formData.requestedAmount),
+
+        bankAccount: formData.bankAccount.trim(),
+
+        reason: formData.reason.trim(),
+
+        pdpaConsent: formData.pdpaConsent,
+      };
+
+      console.log("API URL:", API_URL);
+      console.log("Submitting payload:", payload);
+
+      const response = await fetch(`${API_URL}/api/scholarships`, {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          year: Number(formData.year),
-          gpax: Number(formData.gpax),
-          requestedAmount: Number(formData.requestedAmount),
-        }),
+
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
 
-      if (!response.ok) {
+      console.log("API response:", result);
+
+      if (!response.ok || !result.success) {
         throw new Error(result.message || "เกิดข้อผิดพลาดในการส่งคำขอทุน");
       }
 
       setMessage({
-        text: `ส่งคำขอทุนสำเร็จ! เลขที่คำขอของคุณคือ: ${result.data.requestNumber}`,
+        text: `ส่งคำขอทุนสำเร็จ! เลขที่คำขอของคุณคือ: ${
+          result.data?.requestNumber || "-"
+        }`,
         type: "success",
       });
 
+      // Reset form
       setFormData({
         studentId: "",
         studentName: "",
@@ -81,7 +139,12 @@ function App() {
         pdpaConsent: false,
       });
     } catch (error) {
-      setMessage({ text: error.message, type: "error" });
+      console.error("Submit scholarship error:", error);
+
+      setMessage({
+        text: error.message || "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -96,14 +159,37 @@ function App() {
         textAlign: "left",
       }}
     >
-      <header style={{ textAlign: "center", marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "32px", margin: "0 0 8px" }}>
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
+      <header
+        style={{
+          textAlign: "center",
+          marginBottom: "32px",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "32px",
+            margin: "0 0 8px",
+          }}
+        >
           ยื่นคำขอรับทุนการศึกษา
         </h1>
-        <p style={{ color: "var(--text)" }}>
+
+        <p
+          style={{
+            color: "var(--text)",
+          }}
+        >
           กองพัฒนานักศึกษาและศิษย์เก่าสัมพันธ์ มหาวิทยาลัยสงขลานครินทร์
         </p>
       </header>
+
+      {/* =====================================================
+          MESSAGE
+      ===================================================== */}
 
       {message.text && (
         <div
@@ -111,22 +197,37 @@ function App() {
             padding: "12px 16px",
             marginBottom: "20px",
             borderRadius: "6px",
+
             background:
               message.type === "success"
                 ? "rgba(16, 185, 129, 0.1)"
                 : "rgba(239, 68, 68, 0.1)",
+
             color: message.type === "success" ? "#10b981" : "#ef4444",
-            border: `1px solid ${message.type === "success" ? "#10b981" : "#ef4444"}`,
+
+            border: `1px solid ${
+              message.type === "success" ? "#10b981" : "#ef4444"
+            }`,
           }}
         >
           {message.text}
         </div>
       )}
 
+      {/* =====================================================
+          FORM
+      ===================================================== */}
+
       <form
         onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
       >
+        {/* Student ID + Name */}
+
         <div
           style={{
             display: "grid",
@@ -144,6 +245,7 @@ function App() {
             >
               รหัสนักศึกษา *
             </label>
+
             <input
               type="text"
               name="studentId"
@@ -151,16 +253,10 @@ function App() {
               onChange={handleChange}
               required
               placeholder="เช่น 6510110001"
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              style={inputStyle}
             />
           </div>
+
           <div>
             <label
               style={{
@@ -171,6 +267,7 @@ function App() {
             >
               ชื่อ-นามสกุล *
             </label>
+
             <input
               type="text"
               name="studentName"
@@ -178,17 +275,12 @@ function App() {
               onChange={handleChange}
               required
               placeholder="นายสมชาย เรียนดี"
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              style={inputStyle}
             />
           </div>
         </div>
+
+        {/* Faculty + Major */}
 
         <div
           style={{
@@ -207,6 +299,7 @@ function App() {
             >
               คณะ *
             </label>
+
             <input
               type="text"
               name="faculty"
@@ -214,16 +307,10 @@ function App() {
               onChange={handleChange}
               required
               placeholder="เช่น วิศวกรรมศาสตร์"
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              style={inputStyle}
             />
           </div>
+
           <div>
             <label
               style={{
@@ -234,6 +321,7 @@ function App() {
             >
               สาขาวิชา *
             </label>
+
             <input
               type="text"
               name="major"
@@ -241,17 +329,12 @@ function App() {
               onChange={handleChange}
               required
               placeholder="เช่น วิทยาการคอมพิวเตอร์"
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              style={inputStyle}
             />
           </div>
         </div>
+
+        {/* Year + GPAX */}
 
         <div
           style={{
@@ -270,25 +353,28 @@ function App() {
             >
               ชั้นปี *
             </label>
+
             <select
               name="year"
               value={formData.year}
               onChange={handleChange}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              required
+              style={inputStyle}
             >
               <option value="1">ปี 1</option>
+
               <option value="2">ปี 2</option>
+
               <option value="3">ปี 3</option>
-              <option value="4">ปี 4 ขึ้นไป</option>
+
+              <option value="4">ปี 4</option>
+
+              <option value="5">ปี 5</option>
+
+              <option value="6">ปี 6</option>
             </select>
           </div>
+
           <div>
             <label
               style={{
@@ -299,6 +385,7 @@ function App() {
             >
               GPAX (เกรดเฉลี่ยสะสม) *
             </label>
+
             <input
               type="number"
               step="0.01"
@@ -309,17 +396,12 @@ function App() {
               onChange={handleChange}
               required
               placeholder="เช่น 3.25"
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              style={inputStyle}
             />
           </div>
         </div>
+
+        {/* Email + Scholarship Type */}
 
         <div
           style={{
@@ -338,6 +420,7 @@ function App() {
             >
               อีเมลติดต่อ *
             </label>
+
             <input
               type="email"
               name="email"
@@ -345,16 +428,10 @@ function App() {
               onChange={handleChange}
               required
               placeholder="student@psu.ac.th"
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              style={inputStyle}
             />
           </div>
+
           <div>
             <label
               style={{
@@ -365,18 +442,13 @@ function App() {
             >
               ประเภททุนที่ขอ *
             </label>
+
             <select
               name="scholarshipType"
               value={formData.scholarshipType}
               onChange={handleChange}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              required
+              style={inputStyle}
             >
               {scholarshipTypes.map((type) => (
                 <option key={type} value={type}>
@@ -386,6 +458,8 @@ function App() {
             </select>
           </div>
         </div>
+
+        {/* Amount + Bank Account */}
 
         <div
           style={{
@@ -404,23 +478,19 @@ function App() {
             >
               จำนวนเงินที่ขอรับ (บาท) *
             </label>
+
             <input
               type="number"
+              min="1"
               name="requestedAmount"
               value={formData.requestedAmount}
               onChange={handleChange}
               required
               placeholder="เช่น 5000"
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              style={inputStyle}
             />
           </div>
+
           <div>
             <label
               style={{
@@ -431,6 +501,7 @@ function App() {
             >
               เลขบัญชีธนาคาร *
             </label>
+
             <input
               type="text"
               name="bankAccount"
@@ -438,24 +509,24 @@ function App() {
               onChange={handleChange}
               required
               placeholder="เลขที่บัญชีสำหรับรับเงินโอน"
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "4px",
-                border: "1px solid var(--border)",
-                background: "var(--code-bg)",
-                color: "var(--text-h)",
-              }}
+              style={inputStyle}
             />
           </div>
         </div>
 
+        {/* Reason */}
+
         <div>
           <label
-            style={{ display: "block", marginBottom: "6px", fontWeight: "500" }}
+            style={{
+              display: "block",
+              marginBottom: "6px",
+              fontWeight: "500",
+            }}
           >
             เหตุผลความจำเป็นในการขอรับทุน *
           </label>
+
           <textarea
             name="reason"
             rows="4"
@@ -464,18 +535,22 @@ function App() {
             required
             placeholder="ระบุเหตุผลความจำเป็น..."
             style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "4px",
-              border: "1px solid var(--border)",
-              background: "var(--code-bg)",
-              color: "var(--text-h)",
+              ...inputStyle,
+              height: "auto",
               resize: "vertical",
             }}
-          ></textarea>
+          />
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {/* PDPA */}
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "8px",
+          }}
+        >
           <input
             type="checkbox"
             name="pdpaConsent"
@@ -483,26 +558,48 @@ function App() {
             onChange={handleChange}
             required
             id="pdpa"
-            style={{ width: "18px", height: "18px" }}
+            style={{
+              width: "18px",
+              height: "18px",
+              marginTop: "2px",
+            }}
           />
-          <label htmlFor="pdpa" style={{ cursor: "pointer", fontSize: "15px" }}>
-            ข้าพเจ้ายินยอมให้เก็บรวบรวม ใช้
-            และเปิดเผยข้อมูลส่วนบุคคลตามนโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)
+
+          <label
+            htmlFor="pdpa"
+            style={{
+              cursor: "pointer",
+              fontSize: "15px",
+            }}
+          >
+            ข้าพเจ้ายินยอมให้เก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคล
+            เพื่อประกอบการพิจารณาทุนการศึกษา ตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล
+            (PDPA)
           </label>
         </div>
+
+        {/* Submit */}
 
         <button
           type="submit"
           disabled={loading}
           style={{
             padding: "12px",
+
             borderRadius: "4px",
+
             border: "none",
+
             background: "var(--accent)",
+
             color: "#fff",
+
             fontWeight: "600",
+
             fontSize: "16px",
+
             cursor: loading ? "not-allowed" : "pointer",
+
             opacity: loading ? 0.7 : 1,
           }}
         >
@@ -512,5 +609,25 @@ function App() {
     </div>
   );
 }
+
+// =========================================================
+// SHARED INPUT STYLE
+// =========================================================
+
+const inputStyle = {
+  width: "100%",
+
+  padding: "10px",
+
+  boxSizing: "border-box",
+
+  borderRadius: "4px",
+
+  border: "1px solid var(--border)",
+
+  background: "var(--code-bg)",
+
+  color: "var(--text-h)",
+};
 
 export default App;
