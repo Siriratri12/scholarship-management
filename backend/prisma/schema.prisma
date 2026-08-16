@@ -1,0 +1,98 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+}
+
+enum ScholarshipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ScholarshipType {
+  NEEDY
+  ACADEMIC
+  WORK
+  EMERGENCY
+  ACTIVITY
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  fullName     String
+  role         UserRole @default(STAFF)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+}
+
+model ScholarshipRequest {
+  id            Int    @id @default(autoincrement())
+  requestNumber String @unique
+
+  studentId   String
+  studentName String
+  faculty     String
+  major       String
+  year        Int
+  gpax        Decimal @db.Decimal(3, 2)
+  email       String
+
+  scholarshipType ScholarshipType
+  requestedAmount Decimal         @db.Decimal(12, 2)
+
+  bankAccount String
+  reason      String
+
+  pdpaConsent   Boolean   @default(false)
+  pdpaConsentAt DateTime?
+
+  status    ScholarshipStatus @default(PENDING)
+  staffNote String?
+
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@index([studentId])
+  @@index([studentName])
+  @@index([status])
+  @@index([scholarshipType])
+  @@index([deletedAt])
+}
+
+model AuditLog {
+  id Int @id @default(autoincrement())
+
+  action      String
+  description String?
+
+  userId               Int?
+  scholarshipRequestId Int?
+
+  createdAt DateTime @default(now())
+
+  user               User?               @relation(fields: [userId], references: [id])
+  scholarshipRequest ScholarshipRequest? @relation(fields: [scholarshipRequestId], references: [id])
+
+  @@index([userId])
+  @@index([scholarshipRequestId])
+}

@@ -1,0 +1,17 @@
+/* ล้างค่าเริ่มต้นของทุกๆ แท็กในเบราว์เซอร์ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ทำให้ body และ #root ขยายเต็มหน้าจอ 100% โดยไม่มีขอบขาว */
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
