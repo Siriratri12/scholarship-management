@@ -3,15 +3,14 @@ FROM node:22-alpine
 WORKDIR /app
 
 COPY package*.json ./
-COPY prisma ./prisma
-COPY prisma.config.ts ./
 
-RUN npm install
+# ป้องกัน postinstall -> prisma generate
+# ไม่ให้รันตอน Docker Build
+RUN npm install --ignore-scripts
 
 COPY . .
 
-RUN npx prisma generate
-
 EXPOSE 5000
 
-CMD ["npm", "start"]
+# ตอน Container เริ่มทำงาน Render จะมี DATABASE_URL แล้ว
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npm start"]
