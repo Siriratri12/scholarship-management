@@ -23,3 +23,9 @@ npm-debug.log*
 # Editor
 .vscode/
 .idea/
+
+# AI development tools
+backend/.agents/
+backend/.claude/
+backend/.windsurf/
+backend/skills-lock.json
