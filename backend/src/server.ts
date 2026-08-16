@@ -23,17 +23,14 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // อนุญาต request ที่ไม่มี origin เช่น Postman / server-to-server
       if (!origin) {
         return callback(null, true);
       }
 
-      // อนุญาต localhost และ production domain
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // อนุญาต Vercel deployment / preview URL
       if (
         origin.startsWith("https://scholarship-management-") &&
         origin.endsWith(".vercel.app")
@@ -53,9 +50,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
-
-// รองรับ preflight request
-app.options("*", cors());
 
 // =========================================================
 // BODY PARSER
@@ -85,9 +79,7 @@ app.get("/api/health", (_req, res) => {
 // =========================================================
 
 app.use("/api/auth", authRoutes);
-
 app.use("/api/scholarships", scholarshipRoutes);
-
 app.use("/api/dashboard", dashboardRoutes);
 
 // =========================================================
